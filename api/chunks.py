@@ -1,6 +1,7 @@
 # импорт библиотек
 from dotenv import load_dotenv                              # работа с переменными окружения
 import os                                                   # взаимодействие с операционной системой
+import json                                                 # работа с файлами
 from openai import OpenAI                                   # взаимодействие с OpenAI API
 from langchain.text_splitter import CharacterTextSplitter   # библиотека langchain
 from langchain.docstore.document import Document            # объект класса Document
@@ -12,6 +13,21 @@ load_dotenv('api/.env')
 
 # Глобальная переменная для подсчета обращений
 total_requests = 0
+
+# Функция для чтения количества обращений из файла
+def load_requests_count():
+    try:
+        with open('requests_count.json', 'r') as f:
+            return json.load(f)['count']
+    except FileNotFoundError:
+        return 0
+
+# Функция для сохранения количества обращений в файл
+def save_requests_count(count):
+    with open('requests_count.json', 'w') as f:
+        json.dump({'count': count}, f)
+
+total_requests = load_requests_count()
 
 # класс для работы с OpenAI
 class Chunk():
@@ -48,6 +64,7 @@ class Chunk():
     def get_answer(self, query: str):
         global total_requests
         total_requests += 1  # Увеличиваем счетчик на каждый запрос
+        save_requests_count(total_requests)  # Сохраняем новое значение в файл
         # получаем релевантные отрезки из базы знаний
         docs = self.db.similarity_search(query, k=4)
         message_content = '\n'.join([f'{doc.page_content}' for doc in docs])

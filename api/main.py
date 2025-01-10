@@ -2,6 +2,7 @@
 from fastapi import FastAPI     # библиотека FastAPI
 from pydantic import BaseModel  # модуль для объявления структуры данных
 from api.chunks import Chunk    # модуль для работы с OpenAI
+from api.chunks import load_requests_count
 
 # создаем объект приложения FastAPI
 app = FastAPI()
@@ -23,6 +24,12 @@ def root():
 @app.get("/about")
 def about():
     return {"message": "Страница API нейро-консультанта"}
+
+# функция, которая обрабатывает запрос по пути "/stat"
+@app.get("/api/stat")
+def stat():
+    total_requests = load_requests_count()
+    return {'Total requests': total_requests}
 
 # функция обработки post запроса + декоратор 
 @app.post('/api/get_answer')
